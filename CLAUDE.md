@@ -34,10 +34,13 @@ src/
 ├── app/
 │   ├── (auth)/           # sign-in, sign-up, forgot/reset-password
 │   ├── (app)/dashboard/  # protected demo page (requireUser)
+│   ├── (legal)/          # terms, privacy, acceptable-use, ai-disclosure, cookies
 │   └── api/
 │       ├── auth/[...all]/     # better-auth handler
 │       └── webhooks/stripe/   # signature-verified Stripe webhook
-├── components/           # auth-form, sign-out-button, billing-button
+├── components/           # auth-form, sign-out-button, billing-button,
+│                         # site-footer, cookie-banner, ai-disclosure-notice
+├── content/legal/        # config.ts — company info + LEGAL_VERSION for the (legal) pages
 ├── db/                   # schema.ts (auth + billing tables) + dual-driver index.ts
 ├── lib/
 │   ├── auth.ts           # better-auth server instance
@@ -134,6 +137,23 @@ pnpm db:studio        # Drizzle Studio
 - See `docs/security.md`. Drizzle parameterizes queries — never build SQL by
   string concatenation. Baseline headers in `next.config.ts`; nonce CSP in
   `src/proxy.ts`. Run `/security-review` before shipping.
+
+## Legal
+
+- `src/app/(legal)/` (ToS, Privacy, Acceptable Use, AI Disclosure, Cookies) ships
+  **unreviewed, AI-drafted starter text** — see `docs/legal.md` (not legal
+  advice) before editing or shipping. `src/content/legal/config.ts` is the
+  single source for company name/address/governing law and `LEGAL_VERSION`;
+  its contact email is currently the owner's personal address as a placeholder
+  until this project has a live domain.
+- Sign-up requires accepting current-version ToS/Privacy, enforced server-side
+  in `src/lib/auth.ts`'s `before` hook — don't relax that to client-only.
+- The AI Disclosure page and `<AiDisclosureNotice>` (dropped into `ReportView`
+  in `src/components/study-evaluator.tsx`) describe the study evaluator's real
+  AI-assist behavior (see "Study Evaluator" above) — keep them in sync if
+  `ai.ts`/`quota.ts` change. Consequential-decision uses (employment, credit,
+  housing, insurance, healthcare, education) need more than the default
+  disclosure — see `docs/legal.md`.
 
 ## Provisioning & CLIs
 

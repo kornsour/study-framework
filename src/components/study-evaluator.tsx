@@ -2,6 +2,7 @@
 
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
+import { AiDisclosureNotice } from "@/components/ai-disclosure-notice";
 import type { EvaluateResult } from "@/lib/study-eval/actions";
 import { evaluateStudyAction } from "@/lib/study-eval/actions";
 import type { AiAssist } from "@/lib/study-eval/ai";
@@ -158,9 +159,12 @@ export function ReportView({
 			{/* AI bottom line */}
 			{ai && (
 				<div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-					<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-						Bottom line
-					</h3>
+					<div className="flex items-start justify-between gap-3">
+						<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+							Bottom line
+						</h3>
+						<AiDisclosureNotice className="shrink-0 text-right" />
+					</div>
 					<p className="mt-1">{ai.bottomLine}</p>
 					<dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
 						<div>

@@ -23,6 +23,10 @@ export const user = pgTable("user", {
 	// Coarse app-level role for gating. Multi-tenant org/RBAC is intentionally
 	// left to each app (see the plan's "out of scope").
 	role: text("role").default("user").notNull(),
+	// Which LEGAL_VERSION (src/content/legal/config.ts) this user accepted at
+	// sign-up, and when. Enforced server-side in src/lib/auth.ts.
+	legalAcceptedVersion: text("legal_accepted_version"),
+	legalAcceptedAt: timestamp("legal_accepted_at"),
 	createdAt: timestamp("created_at")
 		.$defaultFn(() => new Date())
 		.notNull(),

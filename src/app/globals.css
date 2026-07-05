@@ -24,3 +24,27 @@ body {
 	color: var(--foreground);
 	font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Hand-rolled prose styling for the legal pages (src/app/(legal)/) — avoids
+   pulling in @tailwindcss/typography for five static pages. */
+.legal-prose h1 {
+	@apply text-3xl font-semibold tracking-tight;
+}
+.legal-prose h2 {
+	@apply mt-8 text-xl font-semibold tracking-tight;
+}
+.legal-prose h3 {
+	@apply mt-6 text-base font-semibold;
+}
+.legal-prose p {
+	@apply mt-3 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300;
+}
+.legal-prose ul {
+	@apply mt-3 list-disc space-y-1 pl-5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300;
+}
+.legal-prose a {
+	@apply underline underline-offset-2 hover:text-zinc-950 dark:hover:text-white;
+}
+.legal-prose strong {
+	@apply font-semibold text-zinc-900 dark:text-zinc-100;
+}

@@ -43,3 +43,4 @@ Each record uses a short [MADR](https://adr.github.io/madr/)-style template:
 | [0012](./0012-auth-better-auth.md) | Authentication with better-auth (self-hosted) | Accepted |
 | [0013](./0013-stripe-billing.md) | Stripe subscription billing, feature-flagged by env | Accepted |
 | [0014](./0014-content-security-policy.md) | Add a nonce-based Content-Security-Policy in middleware | Accepted |
+| [0015](./0015-legal-disclosures-scaffolding.md) | Legal-disclosure page scaffolding (ToS, Privacy, AUP, AI Disclosure, Cookies) | Accepted |
