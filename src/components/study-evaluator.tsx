@@ -74,8 +74,46 @@ function DimensionRow({ d }: { d: DimensionScore }) {
 
 function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) {
 	const { evaluation, ai } = result;
+	const [downloading, setDownloading] = useState(false);
+
+	async function downloadDocx() {
+		setDownloading(true);
+		try {
+			const res = await fetch("/api/report/export", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ title: result.resolvedTitle, evaluation, ai }),
+			});
+			if (!res.ok) return;
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download =
+				res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ??
+				"study-evaluation.docx";
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		} finally {
+			setDownloading(false);
+		}
+	}
+
 	return (
 		<div className="space-y-6">
+			<div className="flex justify-end">
+				<button
+					type="button"
+					onClick={downloadDocx}
+					disabled={downloading}
+					className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+				>
+					{downloading ? "Preparing…" : "Download .docx"}
+				</button>
+			</div>
+
 			{/* AI withheld (quota / global cap) — deterministic scorecard still shown */}
 			{result.aiSkipped && (
 				<div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
