@@ -1,11 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod/v4";
 import { actionClient } from "@/lib/safe-action";
 import type { AiAssist } from "./ai";
 import { applyAiAssist, isAiEnabled, runAiAssist } from "./ai";
 import { parseIdentifier, resolveStudy } from "./fetch/resolve";
 import { evaluateStudy } from "./index";
+import { commitAiTokens, refundAiSlot, reserveAiSlot } from "./quota";
 import type { Evaluation } from "./types";
 
 export type EvaluateResult =
@@ -14,6 +16,8 @@ export type EvaluateResult =
 			evaluation: Evaluation;
 			ai: AiAssist | null;
 			aiAvailable: boolean;
+			/** Set when AI was requested but withheld (quota/cap); carries a message to show. */
+			aiSkipped: { reason: "ip-limit" | "global-cap"; message: string } | null;
 			/** Where the study text came from, for display. */
 			source: "pasted" | "pubmed" | "crossref";
 			resolvedTitle: string | null;
@@ -24,6 +28,13 @@ export type EvaluateResult =
 			ok: false;
 			error: string;
 	  };
+
+/** Best-effort client IP from Vercel's forwarding headers; keyed per-visitor for the free tier. */
+async function clientIp(): Promise<string> {
+	const h = await headers();
+	const fwd = h.get("x-forwarded-for");
+	return fwd?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+}
 
 const inputSchema = z.object({
 	/** Abstract/full text, or a DOI / PMID / PubMed URL. Auto-detected. */
@@ -74,10 +85,26 @@ export const evaluateStudyAction = actionClient
 		});
 
 		let ai: AiAssist | null = null;
+		let skipped: { reason: "ip-limit" | "global-cap"; message: string } | null = null;
 		let finalEvaluation = evaluation;
+
 		if (useAi && isAiEnabled) {
-			ai = await runAiAssist(evaluation, text, resolvedTitle).catch(() => null);
-			if (ai) finalEvaluation = applyAiAssist(evaluation, ai);
+			const ip = await clientIp();
+			const gate = await reserveAiSlot(ip);
+			if (!gate.allowed) {
+				skipped = { reason: gate.reason, message: gate.message };
+			} else {
+				// Slot reserved — run AI, then either meter the tokens spent or
+				// refund the slot if the call failed (don't charge for our errors).
+				const result = await runAiAssist(evaluation, text, resolvedTitle).catch(() => null);
+				if (result) {
+					ai = result.assist;
+					finalEvaluation = applyAiAssist(evaluation, result.assist);
+					await commitAiTokens(ip, result.tokens).catch(() => {});
+				} else {
+					await refundAiSlot(ip).catch(() => {});
+				}
+			}
 		}
 
 		return {
@@ -85,6 +112,7 @@ export const evaluateStudyAction = actionClient
 			evaluation: finalEvaluation,
 			ai,
 			aiAvailable: isAiEnabled,
+			aiSkipped: skipped,
 			source,
 			resolvedTitle,
 		};

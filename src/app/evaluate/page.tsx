@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StudyEvaluator } from "@/components/study-evaluator";
+import { env } from "@/env";
 import { isAiEnabled } from "@/lib/study-eval/ai";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default function EvaluatePage() {
 				<em>does this show X causes Y, or just that they appear together?</em>
 			</p>
 			<div className="mt-8">
-				<StudyEvaluator aiAvailable={isAiEnabled} />
+				<StudyEvaluator aiAvailable={isAiEnabled} aiFreeLimit={env.AI_FREE_EVALS_PER_MONTH} />
 			</div>
 			<p className="mt-10 border-t border-zinc-200 pt-4 text-xs text-zinc-500 dark:border-zinc-800">
 				Scores are computed deterministically from the text and registry metadata (PubMed

@@ -76,6 +76,13 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 	const { evaluation, ai } = result;
 	return (
 		<div className="space-y-6">
+			{/* AI withheld (quota / global cap) — deterministic scorecard still shown */}
+			{result.aiSkipped && (
+				<div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+					<span className="font-medium">AI assist not applied.</span> {result.aiSkipped.message}
+				</div>
+			)}
+
 			{/* Verdict banner */}
 			<div className={`rounded-lg p-4 ${VERDICT_STYLES[evaluation.verdict]}`}>
 				<div className="flex items-baseline justify-between gap-4">
@@ -195,7 +202,13 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 	);
 }
 
-export function StudyEvaluator({ aiAvailable }: { aiAvailable: boolean }) {
+export function StudyEvaluator({
+	aiAvailable,
+	aiFreeLimit,
+}: {
+	aiAvailable: boolean;
+	aiFreeLimit: number;
+}) {
 	const [input, setInput] = useState("");
 	const [title, setTitle] = useState("");
 	const [useAi, setUseAi] = useState(false);
@@ -250,7 +263,7 @@ export function StudyEvaluator({ aiAvailable }: { aiAvailable: boolean }) {
 							disabled={!aiAvailable}
 						/>
 						AI assist (confounder analysis + plain-speak bottom line)
-						{!aiAvailable && " — set ANTHROPIC_API_KEY to enable"}
+						{aiAvailable ? ` — ${aiFreeLimit} free / month` : " — set ANTHROPIC_API_KEY to enable"}
 					</label>
 					<button
 						type="submit"

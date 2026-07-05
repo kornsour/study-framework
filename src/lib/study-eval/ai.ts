@@ -115,7 +115,7 @@ export async function runAiAssist(
 	evaluation: Evaluation,
 	studyText: string,
 	title: string | null,
-): Promise<AiAssist | null> {
+): Promise<{ assist: AiAssist; tokens: number } | null> {
 	if (!isAiEnabled) return null;
 
 	const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
@@ -165,8 +165,17 @@ export async function runAiAssist(
 	const textBlock = response.content.find((b) => b.type === "text");
 	if (textBlock?.type !== "text") return null;
 
+	// Total tokens processed (input + cache traffic + output) — metered against
+	// the global monthly cap in quota.ts.
+	const u = response.usage;
+	const tokens =
+		u.input_tokens +
+		u.output_tokens +
+		(u.cache_read_input_tokens ?? 0) +
+		(u.cache_creation_input_tokens ?? 0);
+
 	try {
-		return JSON.parse(textBlock.text) as AiAssist;
+		return { assist: JSON.parse(textBlock.text) as AiAssist, tokens };
 	} catch {
 		return null;
 	}
