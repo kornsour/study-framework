@@ -46,6 +46,7 @@ src/
 │   ├── password.ts       # password policy (single source of truth)
 │   ├── email/            # pluggable sendEmail()
 │   ├── stripe/           # client, actions, customer, webhook mapping
+│   ├── study-eval/       # Good Study Framework evaluator (see below)
 │   └── safe-action.ts    # actionClient + authActionClient
 ├── env.ts                # type-safe env
 └── proxy.ts              # Next 16 proxy (formerly middleware): auth redirect + CSP
@@ -104,6 +105,24 @@ pnpm db:studio        # Drizzle Studio
   `src/lib/stripe/actions.ts`; the webhook (`src/app/api/webhooks/stripe/route.ts`)
   is the source of truth for subscription state. **Check entitlement by reading
   the `subscription` table server-side**, never a client value.
+
+## Study Evaluator (Good Study Framework)
+
+- `src/lib/study-eval/` scores a study 0–14 across 7 dimensions (design,
+  causation, size, measurement, statistics, robustness, applicability) with an
+  override rule: a causal claim scoring 0 on Design and Causation is capped at
+  Weak. Public UI at `/evaluate`.
+- **Deterministic first**: extractors in `extract/` are pure regex/keyword
+  functions — no network, no AI. Fetchers in `fetch/` resolve DOI/PMID via
+  PubMed E-utilities (curated publication types + retraction flags) and
+  Crossref; both are free, keyless APIs.
+- **AI assist is optional** (`ai.ts`, Claude Sonnet): inert until
+  `ANTHROPIC_API_KEY` is set. It only reviews dimensions the deterministic pass
+  marked `needsReview`, reasons about confounders, and writes the plain-speak
+  bottom line. One API call per evaluation; the rubric system prompt is cached.
+- When changing scoring logic, keep `score.ts` in sync with the framework doc
+  and update `study-eval.test.ts` (end-to-end fixtures for RCT / observational
+  / animal abstracts).
 
 ## Server Actions
 

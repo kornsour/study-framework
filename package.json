@@ -28,6 +28,7 @@
     "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@aws-sdk/client-sesv2": "^3.1079.0",
     "@neondatabase/serverless": "^1.1.0",
     "@t3-oss/env-nextjs": "^0.13.11",

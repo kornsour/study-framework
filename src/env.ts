@@ -22,6 +22,9 @@ export const env = createEnv({
 		// ---- Billing: Stripe (optional — billing is inert until set) ----
 		STRIPE_SECRET_KEY: z.string().optional(),
 		STRIPE_WEBHOOK_SIGNING_SECRET: z.string().optional(),
+
+		// ---- AI: Claude API (optional — study-eval AI assist is inert until set) ----
+		ANTHROPIC_API_KEY: z.string().optional(),
 	},
 	client: {
 		// Public base URL (used by better-auth, OAuth redirects, email links).
@@ -45,6 +48,7 @@ export const env = createEnv({
 		EMAIL_FROM: process.env.EMAIL_FROM,
 		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		STRIPE_WEBHOOK_SIGNING_SECRET: process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
+		ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
 		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 		NEXT_PUBLIC_GOOGLE_ENABLED: process.env.NEXT_PUBLIC_GOOGLE_ENABLED,
 		NEXT_PUBLIC_APPLE_ENABLED: process.env.NEXT_PUBLIC_APPLE_ENABLED,
