@@ -45,7 +45,7 @@
     "@biomejs/biome": "^2.5.0",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^25",
+    "@types/node": "^26",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
