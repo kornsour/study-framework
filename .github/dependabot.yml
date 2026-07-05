@@ -1,0 +1,62 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "kornsour"
+    labels:
+      - "dependencies"
+    groups:
+      next:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      drizzle:
+        patterns:
+          - "drizzle-orm"
+          - "drizzle-kit"
+      biome:
+        patterns:
+          - "@biomejs/*"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitejs/*"
+      playwright:
+        patterns:
+          - "@playwright/*"
+      zod:
+        patterns:
+          - "zod"
+          - "@t3-oss/*"
+          - "next-safe-action"
+      auth:
+        patterns:
+          - "better-auth"
+      db-driver:
+        patterns:
+          - "pg"
+          - "@types/pg"
+          - "@neondatabase/*"
+      stripe:
+        patterns:
+          - "stripe"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "ci"

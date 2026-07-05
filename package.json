@@ -1,0 +1,58 @@
+{
+  "name": "typescript-template",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.4+sha512.8768be55200ae3f2226b6527fcca2687e14bc4e5f12d7721a0f25da3df47915177058648db4177baf348120fa0ba2752d8d8d93f6beaf1fe64ae18da8de961af",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "bootstrap": "bash scripts/bootstrap.sh",
+    "preflight": "bash scripts/preflight.sh",
+    "db:local": "bash scripts/db-local.sh",
+    "db:generate": "dotenv -e .env -- drizzle-kit generate",
+    "db:migrate": "dotenv -e .env -- drizzle-kit migrate",
+    "db:push": "dotenv -e .env -- drizzle-kit push",
+    "db:studio": "dotenv -e .env -- drizzle-kit studio",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1079.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "@t3-oss/env-nextjs": "^0.13.11",
+    "better-auth": "^1.6.23",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.2.9",
+    "next-safe-action": "^8.5.4",
+    "pg": "^8.22.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "stripe": "^22.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@playwright/test": "^1.60.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^25",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "^0.31.10",
+    "tailwindcss": "^4",
+    "typescript": "^6",
+    "vitest": "^4.1.9"
+  }
+}
