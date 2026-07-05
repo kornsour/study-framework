@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 /* -------------------------------------------------------------------------- */
 /*  better-auth core tables                                                    */
@@ -82,6 +82,29 @@ export const customer = pgTable("customer", {
 		.$defaultFn(() => new Date())
 		.notNull(),
 });
+
+/* -------------------------------------------------------------------------- */
+/*  AI-assist usage metering                                                    */
+/*  Backs the abuse controls on the study evaluator's optional Claude pass:     */
+/*    - one row per (bucketKey, period) where period is a UTC "YYYY-MM" month.  */
+/*    - bucketKey "ip:<addr>" tracks a visitor's monthly free-eval count.       */
+/*    - bucketKey "global" is the site-wide backstop (total tokens spent).      */
+/*  See src/lib/study-eval/quota.ts.                                            */
+/* -------------------------------------------------------------------------- */
+
+export const aiUsage = pgTable(
+	"ai_usage",
+	{
+		bucketKey: text("bucket_key").notNull(),
+		period: text("period").notNull(),
+		count: integer("count").default(0).notNull(),
+		tokens: integer("tokens").default(0).notNull(),
+		updatedAt: timestamp("updated_at")
+			.$defaultFn(() => new Date())
+			.notNull(),
+	},
+	(t) => [primaryKey({ columns: [t.bucketKey, t.period] })],
+);
 
 export const subscription = pgTable("subscription", {
 	// Stripe subscription id (sub_…) is the natural primary key.

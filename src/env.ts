@@ -22,6 +22,15 @@ export const env = createEnv({
 		// ---- Billing: Stripe (optional — billing is inert until set) ----
 		STRIPE_SECRET_KEY: z.string().optional(),
 		STRIPE_WEBHOOK_SIGNING_SECRET: z.string().optional(),
+
+		// ---- AI: Claude API (optional — study-eval AI assist is inert until set) ----
+		ANTHROPIC_API_KEY: z.string().optional(),
+		// Abuse controls for the AI-assist pass (see src/lib/study-eval/quota.ts).
+		// Free AI evaluations allowed per visitor IP per calendar month.
+		AI_FREE_EVALS_PER_MONTH: z.coerce.number().int().positive().default(3),
+		// Site-wide hard ceiling on Claude tokens spent per month (wallet guard,
+		// robust to IP rotation). AI assist pauses for everyone once reached.
+		AI_GLOBAL_MONTHLY_TOKEN_CAP: z.coerce.number().int().positive().default(1_000_000),
 	},
 	client: {
 		// Public base URL (used by better-auth, OAuth redirects, email links).
@@ -45,6 +54,9 @@ export const env = createEnv({
 		EMAIL_FROM: process.env.EMAIL_FROM,
 		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		STRIPE_WEBHOOK_SIGNING_SECRET: process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
+		ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+		AI_FREE_EVALS_PER_MONTH: process.env.AI_FREE_EVALS_PER_MONTH,
+		AI_GLOBAL_MONTHLY_TOKEN_CAP: process.env.AI_GLOBAL_MONTHLY_TOKEN_CAP,
 		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 		NEXT_PUBLIC_GOOGLE_ENABLED: process.env.NEXT_PUBLIC_GOOGLE_ENABLED,
 		NEXT_PUBLIC_APPLE_ENABLED: process.env.NEXT_PUBLIC_APPLE_ENABLED,
