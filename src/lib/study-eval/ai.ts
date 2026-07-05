@@ -142,11 +142,13 @@ export async function runAiAssist(
 
 	const response = await client.messages.create({
 		model: "claude-sonnet-5",
-		max_tokens: 4000,
-		// effort "medium": this is a review of a pre-computed scorecard, not
-		// open-ended reasoning — medium balances judgment quality against cost.
+		max_tokens: 3000,
+		// Sonnet 5 runs adaptive thinking by default; disable it here. This is a
+		// bounded review of a pre-computed scorecard, not open-ended reasoning —
+		// thinking would eat the token budget (truncating the JSON) and add latency
+		// and cost for no gain. Structured JSON output is the whole job.
+		thinking: { type: "disabled" },
 		output_config: {
-			effort: "medium",
 			format: { type: "json_schema", schema: OUTPUT_SCHEMA },
 		},
 		system: [
