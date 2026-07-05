@@ -2,6 +2,9 @@
 
 import { headers } from "next/headers";
 import { z } from "zod/v4";
+import { db } from "@/db";
+import { report } from "@/db/schema";
+import { getSession } from "@/lib/auth/session";
 import { actionClient } from "@/lib/safe-action";
 import type { AiAssist } from "./ai";
 import { applyAiAssist, isAiEnabled, runAiAssist } from "./ai";
@@ -21,6 +24,8 @@ export type EvaluateResult =
 			/** Where the study text came from, for display. */
 			source: "pasted" | "pubmed" | "crossref";
 			resolvedTitle: string | null;
+			/** Saved report id when a signed-in user ran this (null for anonymous). */
+			reportId: string | null;
 	  }
 	| {
 			// Expected failures (unresolvable identifier) — returned rather than
@@ -107,6 +112,28 @@ export const evaluateStudyAction = actionClient
 			}
 		}
 
+		// Persist to history for signed-in users (anonymous evals aren't stored).
+		let reportId: string | null = null;
+		const session = await getSession();
+		if (session?.user) {
+			const id = crypto.randomUUID();
+			try {
+				await db.insert(report).values({
+					id,
+					userId: session.user.id,
+					title: resolvedTitle,
+					source,
+					verdict: finalEvaluation.verdict,
+					total: finalEvaluation.total,
+					evaluation: finalEvaluation,
+					ai,
+				});
+				reportId = id;
+			} catch {
+				reportId = null; // saving is best-effort; never fail the evaluation
+			}
+		}
+
 		return {
 			ok: true as const,
 			evaluation: finalEvaluation,
@@ -115,5 +142,6 @@ export const evaluateStudyAction = actionClient
 			aiSkipped: skipped,
 			source,
 			resolvedTitle,
+			reportId,
 		};
 	});

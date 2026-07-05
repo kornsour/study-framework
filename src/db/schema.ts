@@ -1,4 +1,8 @@
-import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+// Type-only imports (erased at runtime — no coupling to the AI/DB modules, so
+// drizzle-kit never loads them during migrations).
+import type { AiAssist } from "@/lib/study-eval/ai";
+import type { Evaluation } from "@/lib/study-eval/types";
 
 /* -------------------------------------------------------------------------- */
 /*  better-auth core tables                                                    */
@@ -105,6 +109,29 @@ export const aiUsage = pgTable(
 	},
 	(t) => [primaryKey({ columns: [t.bucketKey, t.period] })],
 );
+
+/* -------------------------------------------------------------------------- */
+/*  Saved evaluation reports (history for signed-in users)                      */
+/*  Anonymous evaluations are not stored; a report row is written only when a   */
+/*  logged-in user runs one. The full evaluation + AI output are kept as JSON   */
+/*  so a saved report renders identically to a fresh one.                       */
+/* -------------------------------------------------------------------------- */
+
+export const report = pgTable("report", {
+	id: text("id").primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	title: text("title"),
+	source: text("source").notNull(), // pasted | pubmed | crossref
+	verdict: text("verdict").notNull(), // strong | mixed | weak
+	total: integer("total").notNull(),
+	evaluation: jsonb("evaluation").$type<Evaluation>().notNull(),
+	ai: jsonb("ai").$type<AiAssist>(), // null when AI assist didn't run
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
+});
 
 export const subscription = pgTable("subscription", {
 	// Stripe subscription id (sub_…) is the natural primary key.

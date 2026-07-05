@@ -4,7 +4,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import type { EvaluateResult } from "@/lib/study-eval/actions";
 import { evaluateStudyAction } from "@/lib/study-eval/actions";
-import type { DimensionScore } from "@/lib/study-eval/types";
+import type { AiAssist } from "@/lib/study-eval/ai";
+import type { DimensionScore, Evaluation } from "@/lib/study-eval/types";
 
 const VERDICT_STYLES: Record<string, string> = {
 	strong: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
@@ -72,8 +73,19 @@ function DimensionRow({ d }: { d: DimensionScore }) {
 	);
 }
 
-function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) {
-	const { evaluation, ai } = result;
+export function ReportView({
+	evaluation,
+	ai,
+	title,
+	aiSkipped = null,
+	aiAvailable = false,
+}: {
+	evaluation: Evaluation;
+	ai: AiAssist | null;
+	title: string | null;
+	aiSkipped?: { reason: "ip-limit" | "global-cap"; message: string } | null;
+	aiAvailable?: boolean;
+}) {
 	const [downloading, setDownloading] = useState(false);
 
 	async function downloadDocx() {
@@ -82,7 +94,7 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 			const res = await fetch("/api/report/export", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ title: result.resolvedTitle, evaluation, ai }),
+				body: JSON.stringify({ title, evaluation, ai }),
 			});
 			if (!res.ok) return;
 			const blob = await res.blob();
@@ -115,9 +127,9 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 			</div>
 
 			{/* AI withheld (quota / global cap) — deterministic scorecard still shown */}
-			{result.aiSkipped && (
+			{aiSkipped && (
 				<div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-					<span className="font-medium">AI assist not applied.</span> {result.aiSkipped.message}
+					<span className="font-medium">AI assist not applied.</span> {aiSkipped.message}
 				</div>
 			)}
 
@@ -233,9 +245,31 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 					The automated checks couldn't confidently score:{" "}
 					<span className="font-medium">{evaluation.reviewCandidates.join(", ")}</span>. Read those
 					dimensions yourself
-					{result.aiAvailable ? ", or re-run with AI assist enabled." : "."}
+					{aiAvailable ? ", or re-run with AI assist enabled." : "."}
 				</p>
 			)}
+		</div>
+	);
+}
+
+function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) {
+	return (
+		<div className="space-y-4">
+			{result.reportId && (
+				<p className="text-sm text-emerald-700 dark:text-emerald-400">
+					Saved to your history.{" "}
+					<a href={`/reports/${result.reportId}`} className="underline">
+						View report
+					</a>
+				</p>
+			)}
+			<ReportView
+				evaluation={result.evaluation}
+				ai={result.ai}
+				title={result.resolvedTitle}
+				aiSkipped={result.aiSkipped}
+				aiAvailable={result.aiAvailable}
+			/>
 		</div>
 	);
 }

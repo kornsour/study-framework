@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { StudyEvaluator } from "@/components/study-evaluator";
 import { env } from "@/env";
+import { getSession } from "@/lib/auth/session";
 import { isAiEnabled } from "@/lib/study-eval/ai";
 
 export const metadata: Metadata = {
@@ -9,9 +11,21 @@ export const metadata: Metadata = {
 		"Score a scientific study on 7 dimensions of quality: design, causation, size, measurement, statistics, robustness, and applicability.",
 };
 
-export default function EvaluatePage() {
+export default async function EvaluatePage() {
+	const session = await getSession();
 	return (
 		<div className="mx-auto w-full max-w-3xl px-6 py-10">
+			<div className="mb-4 flex justify-end text-sm">
+				{session?.user ? (
+					<Link href="/reports" className="font-medium underline">
+						My reports
+					</Link>
+				) : (
+					<Link href="/sign-in?next=/evaluate" className="font-medium underline">
+						Sign in to save your reports
+					</Link>
+				)}
+			</div>
 			<h1 className="text-3xl font-semibold tracking-tight">How good is this study?</h1>
 			<p className="mt-2 text-zinc-600 dark:text-zinc-400">
 				Paste an abstract — or just a DOI, PMID, or PubMed link — and get a 14-point scorecard built
