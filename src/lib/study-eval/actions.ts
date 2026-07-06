@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { z } from "zod/v4";
 import { db } from "@/db";
 import { report } from "@/db/schema";
@@ -20,8 +19,11 @@ export type EvaluateResult =
 			evaluation: Evaluation;
 			ai: AiAssist | null;
 			aiAvailable: boolean;
-			/** Set when AI was requested but withheld (quota/cap); carries a message to show. */
-			aiSkipped: { reason: "ip-limit" | "global-cap"; message: string } | null;
+			/** Set when AI was requested but withheld (needs sign-in / quota / cap); carries a message to show. */
+			aiSkipped: {
+				reason: "sign-in-required" | "account-limit" | "global-cap";
+				message: string;
+			} | null;
 			/** Where the study text came from, for display. */
 			source: "pasted" | "pubmed" | "crossref";
 			resolvedTitle: string | null;
@@ -34,13 +36,6 @@ export type EvaluateResult =
 			ok: false;
 			error: string;
 	  };
-
-/** Best-effort client IP from Vercel's forwarding headers; keyed per-visitor for the free tier. */
-async function clientIp(): Promise<string> {
-	const h = await headers();
-	const fwd = h.get("x-forwarded-for");
-	return fwd?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-}
 
 const inputSchema = z.object({
 	/** Abstract/full text, or a DOI / PMID / PubMed URL. Auto-detected. */
@@ -95,16 +90,24 @@ export const evaluateStudyAction = actionClient
 		const user = session?.user ?? null;
 
 		let ai: AiAssist | null = null;
-		let skipped: { reason: "ip-limit" | "global-cap"; message: string } | null = null;
+		let skipped: {
+			reason: "sign-in-required" | "account-limit" | "global-cap";
+			message: string;
+		} | null = null;
 		let finalEvaluation = evaluation;
 
-		if (useAi && isAiEnabled) {
-			const subscribed = user ? await hasActiveSubscription(user.id) : false;
-			const subject = resolveQuota({
-				userId: user?.id ?? null,
-				subscribed,
-				ip: await clientIp(),
-			});
+		if (useAi && isAiEnabled && !user) {
+			// AI assist requires sign-in — this is the abuse boundary. Anonymous
+			// visitors get the full deterministic scorecard, just not the AI section.
+			// Enforced here server-side; the client gating is only a convenience.
+			skipped = {
+				reason: "sign-in-required",
+				message:
+					"Sign in to use AI assist — it's tracked per account so we can keep it free and un-abused. The full deterministic scorecard below is free for everyone.",
+			};
+		} else if (useAi && isAiEnabled && user) {
+			const subscribed = await hasActiveSubscription(user.id);
+			const subject = resolveQuota({ userId: user.id, subscribed });
 			const gate = await reserveAiSlot(subject);
 			if (!gate.allowed) {
 				skipped = { reason: gate.reason, message: gate.message };

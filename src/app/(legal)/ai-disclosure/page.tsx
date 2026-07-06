@@ -84,10 +84,12 @@ export default function AiDisclosurePage() {
 			</p>
 			<ul>
 				<li>
-					<strong>Per-visitor monthly limit.</strong> Each visitor (tracked by IP address) gets a
-					limited number of free AI-assist evaluations per calendar month. Once you've used your
-					monthly allowance, further evaluations still run the full deterministic scorecard; only
-					the AI-assist section is withheld until the next month.
+					<strong>Sign-in required, with a per-account monthly limit.</strong> AI assist is
+					available only when you're signed in, and each account gets a limited number of AI-assist
+					evaluations per calendar month. This keeps AI usage tied to a stable account rather than
+					an easily-rotated IP address. Once you've used your monthly allowance, further evaluations
+					still run the full deterministic scorecard; only the AI-assist section is withheld until
+					the next month. The deterministic scorecard never requires sign-in.
 				</li>
 				<li>
 					<strong>Site-wide monthly token cap.</strong> Independent of any individual visitor's
