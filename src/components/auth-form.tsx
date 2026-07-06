@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { LEGAL_VERSION } from "@/content/legal/config";
 import { env } from "@/env";
 import { signIn, signUp } from "@/lib/auth-client";
 import { MIN_PASSWORD_LENGTH, passwordError, passwordScore, STRENGTH_LABELS } from "@/lib/password";
@@ -76,6 +77,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirm, setConfirm] = useState("");
+	const [agreedToTerms, setAgreedToTerms] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [pending, setPending] = useState(false);
 
@@ -84,7 +86,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 		isSignUp && confirm && password !== confirm ? "Passwords don't match." : null;
 	const score = passwordScore(password);
 	const blockSignUp =
-		isSignUp && (pwError !== null || confirmError !== null || !password || !confirm || !name);
+		isSignUp &&
+		(pwError !== null || confirmError !== null || !password || !confirm || !name || !agreedToTerms);
 
 	async function onSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -93,7 +96,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 			const firstErr =
 				(!name ? "Enter your name." : null) ||
 				passwordError(password) ||
-				(password !== confirm ? "Passwords don't match." : null);
+				(password !== confirm ? "Passwords don't match." : null) ||
+				(!agreedToTerms ? "You must agree to the Terms of Service and Privacy Policy." : null);
 			if (firstErr) {
 				setError(firstErr);
 				return;
@@ -101,7 +105,14 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 		}
 		setPending(true);
 		const result = isSignUp
-			? await signUp.email({ email, password, name, callbackURL: next })
+			? await signUp.email({
+					email,
+					password,
+					name,
+					callbackURL: next,
+					legalAcceptedVersion: LEGAL_VERSION,
+					legalAcceptedAt: new Date(),
+				})
 			: await signIn.email({ email, password });
 		setPending(false);
 		if (result.error) {
@@ -202,6 +213,32 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 						/>
 						{confirmError && <span className="text-xs text-red-600">{confirmError}</span>}
 					</div>
+				)}
+				{isSignUp && (
+					<label
+						htmlFor="agree-to-terms"
+						className="flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+					>
+						<input
+							id="agree-to-terms"
+							type="checkbox"
+							className="mt-0.5"
+							checked={agreedToTerms}
+							onChange={(e) => setAgreedToTerms(e.target.checked)}
+							required
+						/>
+						<span>
+							I agree to the{" "}
+							<Link href="/terms" target="_blank" className="underline underline-offset-2">
+								Terms of Service
+							</Link>{" "}
+							and{" "}
+							<Link href="/privacy" target="_blank" className="underline underline-offset-2">
+								Privacy Policy
+							</Link>
+							.
+						</span>
+					</label>
 				)}
 				{error && <p className="text-sm text-red-600">{error}</p>}
 				<button

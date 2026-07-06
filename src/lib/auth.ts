@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { LEGAL_VERSION } from "@/content/legal/config";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { env } from "@/env";
@@ -30,6 +31,12 @@ export const auth = betterAuth({
 	}),
 	secret: env.BETTER_AUTH_SECRET,
 	baseURL: env.NEXT_PUBLIC_APP_URL,
+	user: {
+		additionalFields: {
+			legalAcceptedVersion: { type: "string", required: false, input: true },
+			legalAcceptedAt: { type: "date", required: false, input: true },
+		},
+	},
 	emailAndPassword: {
 		enabled: true,
 		minPasswordLength: MIN_PASSWORD_LENGTH,
@@ -73,6 +80,19 @@ export const auth = betterAuth({
 				if (typeof pw === "string") {
 					const err = passwordError(pw);
 					if (err) throw new APIError("BAD_REQUEST", { message: err });
+				}
+			}
+			// Server-side consent gate (defense in depth — the client checkbox in
+			// auth-form.tsx can be bypassed). Requires the client to submit the
+			// LEGAL_VERSION it displayed, so a stale/cached form can't sneak past a
+			// terms update either.
+			if (ctx.path === "/sign-up/email") {
+				const version = (ctx.body as { legalAcceptedVersion?: string } | undefined)
+					?.legalAcceptedVersion;
+				if (version !== LEGAL_VERSION) {
+					throw new APIError("BAD_REQUEST", {
+						message: "You must accept the current Terms of Service and Privacy Policy.",
+					});
 				}
 			}
 		}),

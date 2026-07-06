@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
  *      ADR-0014).
  */
 
-const PROTECTED_PREFIXES = ["/dashboard"];
+const PROTECTED_PREFIXES = ["/dashboard", "/reports"];
 
 /**
  *   - Production: strict — scripts must carry the per-request nonce.

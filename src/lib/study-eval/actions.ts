@@ -2,12 +2,16 @@
 
 import { headers } from "next/headers";
 import { z } from "zod/v4";
+import { db } from "@/db";
+import { report } from "@/db/schema";
+import { getSession } from "@/lib/auth/session";
 import { actionClient } from "@/lib/safe-action";
+import { hasActiveSubscription } from "@/lib/stripe/subscription";
 import type { AiAssist } from "./ai";
 import { applyAiAssist, isAiEnabled, runAiAssist } from "./ai";
 import { parseIdentifier, resolveStudy } from "./fetch/resolve";
 import { evaluateStudy } from "./index";
-import { commitAiTokens, refundAiSlot, reserveAiSlot } from "./quota";
+import { commitAiTokens, refundAiSlot, reserveAiSlot, resolveQuota } from "./quota";
 import type { Evaluation } from "./types";
 
 export type EvaluateResult =
@@ -21,6 +25,8 @@ export type EvaluateResult =
 			/** Where the study text came from, for display. */
 			source: "pasted" | "pubmed" | "crossref";
 			resolvedTitle: string | null;
+			/** Saved report id when a signed-in user ran this (null for anonymous). */
+			reportId: string | null;
 	  }
 	| {
 			// Expected failures (unresolvable identifier) — returned rather than
@@ -84,13 +90,22 @@ export const evaluateStudyAction = actionClient
 			pmid,
 		});
 
+		// One session lookup drives both AI entitlement and history saving.
+		const session = await getSession();
+		const user = session?.user ?? null;
+
 		let ai: AiAssist | null = null;
 		let skipped: { reason: "ip-limit" | "global-cap"; message: string } | null = null;
 		let finalEvaluation = evaluation;
 
 		if (useAi && isAiEnabled) {
-			const ip = await clientIp();
-			const gate = await reserveAiSlot(ip);
+			const subscribed = user ? await hasActiveSubscription(user.id) : false;
+			const subject = resolveQuota({
+				userId: user?.id ?? null,
+				subscribed,
+				ip: await clientIp(),
+			});
+			const gate = await reserveAiSlot(subject);
 			if (!gate.allowed) {
 				skipped = { reason: gate.reason, message: gate.message };
 			} else {
@@ -100,10 +115,31 @@ export const evaluateStudyAction = actionClient
 				if (result) {
 					ai = result.assist;
 					finalEvaluation = applyAiAssist(evaluation, result.assist);
-					await commitAiTokens(ip, result.tokens).catch(() => {});
+					await commitAiTokens(subject.bucketKey, result.tokens).catch(() => {});
 				} else {
-					await refundAiSlot(ip).catch(() => {});
+					await refundAiSlot(subject.bucketKey).catch(() => {});
 				}
+			}
+		}
+
+		// Persist to history for signed-in users (anonymous evals aren't stored).
+		let reportId: string | null = null;
+		if (user) {
+			const id = crypto.randomUUID();
+			try {
+				await db.insert(report).values({
+					id,
+					userId: user.id,
+					title: resolvedTitle,
+					source,
+					verdict: finalEvaluation.verdict,
+					total: finalEvaluation.total,
+					evaluation: finalEvaluation,
+					ai,
+				});
+				reportId = id;
+			} catch {
+				reportId = null; // saving is best-effort; never fail the evaluation
 			}
 		}
 
@@ -115,5 +151,6 @@ export const evaluateStudyAction = actionClient
 			aiSkipped: skipped,
 			source,
 			resolvedTitle,
+			reportId,
 		};
 	});
