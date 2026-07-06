@@ -39,7 +39,10 @@ vercel deploy --prod     # production
    Vercel has no IAM role to fall back on, so the AWS SDK's default credential
    chain needs `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` set as env vars too
    (app code has no provider-specific logic either way).
-5. Run schema migrations against Neon: `pnpm db:migrate` (with prod `DATABASE_URL`).
+5. Schema migrations run **automatically** on every Production deploy (see
+   [Migrations on deploy](#migrations-on-deploy) below) — no manual step. For an
+   out-of-band run you can still do `pnpm db:migrate` locally with the prod
+   `DATABASE_URL`.
 6. Work through [`../security.md`](../security.md) and run `/security-review`.
 
 ## CI
@@ -47,3 +50,30 @@ vercel deploy --prod     # production
 `.github/workflows/ci.yml` runs Biome, `tsc`, Vitest, and `pnpm build` on every
 push/PR with `SKIP_ENV_VALIDATION=1` (no DB in CI). E2E runs locally only
 ([ADR-0008](../adr/0008-e2e-local-only.md)).
+
+## Migrations on deploy
+
+Drizzle migrations are applied automatically as part of the **Production** Vercel
+build, so a push to `main` deploys the schema and the code together against the
+exact commit being shipped.
+
+- Vercel runs the `vercel-build` script (instead of the default build command)
+  when it's present. Ours is:
+
+  ```json
+  "vercel-build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate:deploy; fi && next build"
+  ```
+
+- The migrate step only runs when `VERCEL_ENV=production` (Vercel sets this during
+  Production builds), so **Preview and Development builds never touch the database**.
+- `db:migrate:deploy` is `drizzle-kit migrate` with **no** `dotenv` wrapper —
+  Vercel injects `DATABASE_URL` straight into the build environment, so no `.env`
+  file or extra secret is needed. (The `pnpm db:migrate` script keeps its
+  `dotenv -e .env` wrapper for local use.)
+- A failed migration exits non-zero and **fails the build**. Vercel's deploys are
+  atomic, so a failed build never goes live — worst case is a blocked deploy, not
+  a half-migrated production database.
+
+Because migrations run inside the build, `drizzle/` (the SQL files **and**
+`meta/_journal.json`) must be committed — never hand-edit them; use
+`pnpm db:generate` (see [`../../CLAUDE.md`](../../CLAUDE.md) → Database).
