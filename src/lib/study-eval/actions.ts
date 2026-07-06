@@ -103,7 +103,7 @@ export const evaluateStudyAction = actionClient
 			skipped = {
 				reason: "sign-in-required",
 				message:
-					"Sign in to use AI assist — it's tracked per account so we can keep it free and un-abused. The full deterministic scorecard below is free for everyone.",
+					"Sign in to use AI assist — it's tracked per account to prevent abuse and keep it free. The full deterministic scorecard below is free for everyone.",
 			};
 		} else if (useAi && isAiEnabled && user) {
 			const subscribed = await hasActiveSubscription(user.id);

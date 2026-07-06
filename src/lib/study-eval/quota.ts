@@ -67,8 +67,8 @@ function overLimitMessage(subject: QuotaSubject): string {
 }
 
 /**
- * Atomically reserve one AI slot for this IP. Checks the global token cap first
- * (a soft read — a small overshoot under a concurrent burst is acceptable), then
+ * Atomically reserve one AI slot for this account. Checks the global token cap
+ * first (a soft read — a small overshoot under a concurrent burst is acceptable), then
  * increments the account's monthly count and reads the new value in one
  * statement. If the reservation pushes the account over its limit, it is
  * refunded before we return so a blocked attempt doesn't burn the user's quota.

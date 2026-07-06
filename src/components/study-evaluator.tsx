@@ -325,7 +325,9 @@ export function StudyEvaluator({
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					execute({ input, title: title || undefined, useAi });
+					// Only ask for AI when it's actually usable, so the request matches
+					// the (possibly disabled) checkbox even if session state changed.
+					execute({ input, title: title || undefined, useAi: useAi && aiUsable });
 				}}
 				className="space-y-3"
 			>
