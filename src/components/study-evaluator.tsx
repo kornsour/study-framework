@@ -339,7 +339,7 @@ export function StudyEvaluator({
 							disabled={!aiAvailable}
 						/>
 						AI assist (confounder analysis + plain-speak bottom line)
-						{aiAvailable ? ` — ${aiFreeLimit} free / month` : " — set ANTHROPIC_API_KEY to enable"}
+						{aiAvailable ? ` — ${aiFreeLimit} / month` : " — set ANTHROPIC_API_KEY to enable"}
 					</label>
 					<button
 						type="submit"
