@@ -61,7 +61,7 @@ exact commit being shipped.
   when it's present. Ours is:
 
   ```json
-  "vercel-build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate:deploy; fi && next build"
+  "vercel-build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate:deploy; fi && pnpm build"
   ```
 
 - The migrate step only runs when `VERCEL_ENV=production` (Vercel sets this during

@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "vercel-build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate:deploy; fi && next build",
+    "vercel-build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate:deploy; fi && pnpm build",
     "start": "next start",
     "check": "biome check .",
     "check:fix": "biome check --write .",
