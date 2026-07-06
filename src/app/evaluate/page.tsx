@@ -63,7 +63,11 @@ export default async function EvaluatePage() {
 			)}
 
 			<div className="mt-8">
-				<StudyEvaluator aiAvailable={isAiEnabled} aiFreeLimit={effectiveLimit} />
+				<StudyEvaluator
+					aiAvailable={isAiEnabled}
+					aiFreeLimit={effectiveLimit}
+					signedIn={user !== null}
+				/>
 			</div>
 			<p className="mt-10 border-t border-zinc-200 pt-4 text-xs text-zinc-500 dark:border-zinc-800">
 				Scores are computed deterministically from the text and registry metadata (PubMed

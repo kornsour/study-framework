@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { AiDisclosureNotice } from "@/components/ai-disclosure-notice";
@@ -84,7 +85,10 @@ export function ReportView({
 	evaluation: Evaluation;
 	ai: AiAssist | null;
 	title: string | null;
-	aiSkipped?: { reason: "ip-limit" | "global-cap"; message: string } | null;
+	aiSkipped?: {
+		reason: "sign-in-required" | "account-limit" | "global-cap";
+		message: string;
+	} | null;
 	aiAvailable?: boolean;
 }) {
 	const [downloading, setDownloading] = useState(false);
@@ -127,10 +131,29 @@ export function ReportView({
 				</button>
 			</div>
 
-			{/* AI withheld (quota / global cap) — deterministic scorecard still shown */}
+			{/* AI withheld (needs sign-in / quota / global cap) — deterministic scorecard still shown */}
 			{aiSkipped && (
 				<div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
 					<span className="font-medium">AI assist not applied.</span> {aiSkipped.message}
+					{aiSkipped.reason === "sign-in-required" && (
+						<>
+							{" "}
+							<Link
+								href="/sign-in?next=/evaluate"
+								className="font-medium underline underline-offset-2"
+							>
+								Sign in
+							</Link>{" "}
+							or{" "}
+							<Link
+								href="/sign-up?next=/evaluate"
+								className="font-medium underline underline-offset-2"
+							>
+								create an account
+							</Link>
+							.
+						</>
+					)}
 				</div>
 			)}
 
@@ -281,13 +304,19 @@ function Results({ result }: { result: Extract<EvaluateResult, { ok: true }> }) 
 export function StudyEvaluator({
 	aiAvailable,
 	aiFreeLimit,
+	signedIn,
 }: {
 	aiAvailable: boolean;
 	aiFreeLimit: number;
+	signedIn: boolean;
 }) {
 	const [input, setInput] = useState("");
 	const [title, setTitle] = useState("");
 	const [useAi, setUseAi] = useState(false);
+
+	// AI assist requires sign-in (also enforced server-side); anonymous visitors
+	// still get the full deterministic scorecard.
+	const aiUsable = aiAvailable && signedIn;
 
 	const { execute, result, isPending } = useAction(evaluateStudyAction);
 
@@ -296,7 +325,9 @@ export function StudyEvaluator({
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					execute({ input, title: title || undefined, useAi });
+					// Only ask for AI when it's actually usable, so the request matches
+					// the (possibly disabled) checkbox even if session state changed.
+					execute({ input, title: title || undefined, useAi: useAi && aiUsable });
 				}}
 				className="space-y-3"
 			>
@@ -329,17 +360,19 @@ export function StudyEvaluator({
 					/>
 				</div>
 				<div className="flex items-center justify-between gap-4">
-					<label
-						className={`flex items-center gap-2 text-sm ${aiAvailable ? "" : "text-zinc-400"}`}
-					>
+					<label className={`flex items-center gap-2 text-sm ${aiUsable ? "" : "text-zinc-400"}`}>
 						<input
 							type="checkbox"
-							checked={useAi}
+							checked={useAi && aiUsable}
 							onChange={(e) => setUseAi(e.target.checked)}
-							disabled={!aiAvailable}
+							disabled={!aiUsable}
 						/>
 						AI assist (confounder analysis + plain-speak bottom line)
-						{aiAvailable ? ` — ${aiFreeLimit} / month` : " — set ANTHROPIC_API_KEY to enable"}
+						{!aiAvailable
+							? " — set ANTHROPIC_API_KEY to enable"
+							: signedIn
+								? ` — ${aiFreeLimit} / month`
+								: " — requires sign-in"}
 					</label>
 					<button
 						type="submit"
@@ -349,6 +382,14 @@ export function StudyEvaluator({
 						{isPending ? "Evaluating…" : "Evaluate"}
 					</button>
 				</div>
+				{aiAvailable && !signedIn && (
+					<p className="text-sm text-zinc-500 dark:text-zinc-400">
+						<Link href="/sign-in?next=/evaluate" className="font-medium underline">
+							Sign in
+						</Link>{" "}
+						to use AI assist — the deterministic scorecard is free for everyone.
+					</p>
+				)}
 			</form>
 
 			{(result.serverError ||
