@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalTemplateNotice } from "@/components/legal-template-notice";
 import { LEGAL_VERSION, legalConfig } from "@/content/legal/config";
 
 export const metadata: Metadata = { title: "Cookie Policy" };
@@ -9,7 +8,6 @@ export default function CookiesPage() {
 	const c = legalConfig;
 	return (
 		<>
-			<LegalTemplateNotice />
 			<h1>Cookie Policy</h1>
 			<p>
 				Version {LEGAL_VERSION} · Effective {c.effectiveDate} · Last updated {c.lastUpdated}

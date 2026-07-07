@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalTemplateNotice } from "@/components/legal-template-notice";
 import { LEGAL_VERSION, legalConfig } from "@/content/legal/config";
 
 export const metadata: Metadata = { title: "Terms of Service" };
@@ -9,7 +8,6 @@ export default function TermsPage() {
 	const c = legalConfig;
 	return (
 		<>
-			<LegalTemplateNotice />
 			<h1>Terms of Service</h1>
 			<p>
 				Version {LEGAL_VERSION} · Effective {c.effectiveDate} · Last updated {c.lastUpdated}
@@ -151,11 +149,7 @@ export default function TermsPage() {
 				These Terms are governed by the laws of the State of {c.governingLawState}, without regard
 				to conflict-of-laws rules. Any dispute not otherwise resolved will be brought exclusively in
 				the state or federal courts located in {c.governingLawVenue}, and you consent to that
-				jurisdiction and venue.{" "}
-				<em>
-					[TODO: decide with counsel whether to add a mandatory arbitration / class-action-waiver
-					clause — deliberately omitted here as a business decision, not a technical default.]
-				</em>
+				jurisdiction and venue.
 			</p>
 
 			<h2>16. Changes to these Terms</h2>
