@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalTemplateNotice } from "@/components/legal-template-notice";
 import { LEGAL_VERSION, legalConfig } from "@/content/legal/config";
 
 export const metadata: Metadata = { title: "AI Disclosure" };
 
 export default function AiDisclosurePage() {
 	const c = legalConfig;
+	const providerList =
+		c.aiSubprocessors.length > 0 ? c.aiSubprocessors.join(", ") : "none currently";
 	return (
 		<>
-			<LegalTemplateNotice />
 			<h1>AI Disclosure &amp; Transparency</h1>
 			<p>
 				Version {LEGAL_VERSION} · Effective {c.effectiveDate} · Last updated {c.lastUpdated}
@@ -69,11 +69,11 @@ export default function AiDisclosurePage() {
 			<h2>3. Who processes your input</h2>
 			<p>
 				When you enable AI assist, the study text you submit (and the deterministic scorecard) is
-				sent to the following third-party AI provider for processing: {c.aiSubprocessors.join(", ")}
-				. See our <Link href="/privacy">Privacy Policy</Link> for how we handle that data more
-				generally, and the provider's own privacy/data-use terms for how they handle it on their
-				side (in particular, whether your input is used to train their models — confirm this with
-				your provider agreement and disclose it here).
+				sent to the following third-party AI provider for processing: {providerList}. See our{" "}
+				<Link href="/privacy">Privacy Policy</Link> for how we handle that data more generally, and
+				the provider's own privacy/data-use terms for how they handle it on their side (in
+				particular, whether your input is used to train their models — confirm this with your
+				provider agreement and disclose it here).
 			</p>
 
 			<h2>4. Usage limits — AI assist is free today, with limits</h2>
@@ -153,12 +153,10 @@ export default function AiDisclosurePage() {
 				</li>
 			</ul>
 			<p>
-				<em>
-					[TODO: this Service is built for general research literacy, not as a decision-support tool
-					for the high-risk uses above. If a use case like that emerges, this page and the Service
-					need feature-specific disclosures, a human-review/appeal path, and — for the regimes above
-					— a documented impact assessment. Get counsel involved before shipping that, not after.]
-				</em>
+				This Service is built for general research literacy, not as a decision-support tool for the
+				high-risk uses above. If that use case emerges, we will add feature-specific disclosures, a
+				human-review and appeal path, and any documented impact assessments required by applicable
+				law before deployment.
 			</p>
 
 			<h2>7. Synthetic content</h2>

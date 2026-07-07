@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalTemplateNotice } from "@/components/legal-template-notice";
 import { LEGAL_VERSION, legalConfig } from "@/content/legal/config";
 
 export const metadata: Metadata = { title: "Privacy Policy" };
@@ -9,7 +8,6 @@ export default function PrivacyPage() {
 	const c = legalConfig;
 	return (
 		<>
-			<LegalTemplateNotice />
 			<h1>Privacy Policy</h1>
 			<p>
 				Version {LEGAL_VERSION} · Effective {c.effectiveDate} · Last updated {c.lastUpdated}
@@ -69,11 +67,10 @@ export default function PrivacyPage() {
 				</li>
 			</ul>
 			<p>
-				<em>
-					[TODO: if you add analytics, marketing, or advertising tools, list them here and in the{" "}
-					<Link href="/cookies">Cookie Policy</Link>, and add the required consent/opt-out mechanism
-					before enabling them.]
-				</em>
+				We don't currently use analytics, marketing, or advertising trackers that rely on
+				non-essential cookies. If that changes, we'll update this policy and our{" "}
+				<Link href="/cookies">Cookie Policy</Link> and implement the required consent or opt-out
+				controls before those tools are enabled.
 			</p>
 
 			<h2>4. Legal basis (EU/UK visitors)</h2>
@@ -150,12 +147,9 @@ export default function PrivacyPage() {
 				before fulfilling a request.
 			</p>
 			<p>
-				<em>
-					[TODO: if you'll have a meaningful EU/UK user base, confirm whether you need to appoint an
-					Article 27 GDPR representative / UK GDPR representative, and consider whether a
-					cookie/consent banner needs a "reject non-essential" control — see{" "}
-					<Link href="/cookies">Cookie Policy</Link>.]
-				</em>
+				Where applicable law requires additional notices, representation, or consent controls for
+				EU/UK visitors, we will provide and maintain those controls in product and in our{" "}
+				<Link href="/cookies">Cookie Policy</Link>.
 			</p>
 
 			<h2>9. Children's privacy</h2>

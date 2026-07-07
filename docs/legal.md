@@ -1,11 +1,11 @@
 # Legal disclosures
 
-> **Not legal advice.** This document and the pages under `src/app/(legal)/`
-> are a starting scaffold, ported from the `typescript-template` starter and
-> adapted to describe this app's actual study-evaluator AI-assist feature.
-> They are not a substitute for review by a licensed attorney in the state(s)
-> and countries where this business and its users are. Treat everything below
-> as "things to check with counsel," not as a compliance guarantee.
+## Status in this repository
+
+The legal pages currently in `src/app/(legal)/` and values in
+`src/content/legal/config.ts` are the **official v1 baseline** for this app and
+were reviewed by counsel as this project's initial launch set. They should be
+treated as live policy text, not placeholders.
 
 ## What's scaffolded
 
@@ -43,14 +43,14 @@ table): a per-visitor-IP monthly free-evaluation limit
 only withholds the AI-assist section; the scorecard is unaffected. There is no
 paid pricing tier today — these are free-tier usage limits, not billing.
 
-## Before you launch
+## For future apps copied from this project/template
 
-1. Get all five pages reviewed by an attorney licensed in Michigan (or wherever this business incorporates) — and in any other jurisdiction with a meaningful user base — before treating this as production-ready.
-2. **Contact email placeholder**: `contactEmail` / `privacyEmail` in `src/content/legal/config.ts` currently point at the owner's personal Gmail because this project has no live custom domain yet. Swap for a domain-based address (e.g. `legal@studyframework.app`) once one exists.
-3. Confirm the AI-disclosure content in `src/app/(legal)/ai-disclosure/page.tsx` against the actual behavior of `src/lib/study-eval/ai.ts` and `src/lib/study-eval/quota.ts` any time that code changes — this page is only accurate as of the PR that added it.
-4. Decide whether you need a **GDPR/UK GDPR Article 27 representative** — relevant if there's a meaningful EU/UK user base.
-5. Decide whether you want a mandatory-arbitration / class-action-waiver clause in the ToS. Deliberately left out as a business decision, not a default.
-6. If billing (`STRIPE_SECRET_KEY`) is ever turned on for real, revisit `/terms` Section 5, which currently describes the feature as free with placeholder billing language for a future paid tier.
+1. Replace `src/content/legal/config.ts` with your own entity name, address/contact channels, governing-law venue, policy dates, and AI provider list.
+2. Have all five pages reviewed by counsel for your own legal entity and jurisdictional footprint before launch.
+3. Confirm AI-disclosure language in `src/app/(legal)/ai-disclosure/page.tsx` against the actual behavior of your AI code paths whenever those paths change.
+4. Decide whether you need a **GDPR/UK GDPR Article 27 representative** if you'll have a meaningful EU/UK user base.
+5. Decide whether to add mandatory-arbitration / class-action-waiver terms in your ToS.
+6. If billing (`STRIPE_SECRET_KEY`) is enabled for paid plans, ensure `/terms` billing language matches your actual pricing, renewals, cancellations, and refund policy.
 7. When you materially change a legal page, bump `LEGAL_VERSION` in `src/content/legal/config.ts`. New sign-ups are gated on the current version automatically; **existing users are not automatically re-prompted** — add that check to `requireUser()`/`getSession()` call sites if you need to force re-acceptance.
 8. If analytics, ads, or any non-essential tracking cookie is added, upgrade `src/components/cookie-banner.tsx` from a notice into a real accept/reject consent control *before* those trackers load, and list them in the Cookie Policy.
 
