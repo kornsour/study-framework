@@ -1,0 +1,8 @@
+name: Lockfile
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  lockfile:
+    uses: kornsour/gh-automation/.github/workflows/lockfile-guard.yml@main
