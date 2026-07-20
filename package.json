@@ -38,7 +38,7 @@
     "docx": "^9.7.1",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.10",
-    "next-safe-action": "^8.5.5",
+    "next-safe-action": "^8.6.0",
     "pg": "^8.22.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",

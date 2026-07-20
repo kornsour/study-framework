@@ -33,8 +33,8 @@ importers:
         specifier: 16.2.10
         version: 16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next-safe-action:
-        specifier: ^8.5.5
-        version: 8.5.5(next@16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: ^8.6.0
+        version: 8.6.0(next@16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       pg:
         specifier: ^8.22.0
         version: 8.22.0
@@ -1764,8 +1764,8 @@ packages:
     resolution: {integrity: sha512-i0tloweeudshAEuddpDxcg9Ik6pkPfVsHIgKyf143JrgG7/MOh0+q7BypdLXZPoOP7fOYt1eTcwGkyiVmhJFkA==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
-  next-safe-action@8.5.5:
-    resolution: {integrity: sha512-y6h2w5VFVsy4+LqbEI1xW0coUu1uWH+1xXXlXn8ZTXMVusT392jQq98cpATZEYaG2kFet2tlcOn8U/H4BL5rTQ==}
+  next-safe-action@8.6.0:
+    resolution: {integrity: sha512-aS6e5XhLEmHIJp4wtfLOTSapcnjGZdVMmQIEOq8YCQ95Ej5WbZc+qfn9fP7zyLu33H/cigMZeWTP5NItirJYfg==}
     engines: {node: '>=18.17'}
     peerDependencies:
       next: '>= 14.0.0'
@@ -3383,7 +3383,7 @@ snapshots:
 
   nanostores@1.4.0: {}
 
-  next-safe-action@8.5.5(next@16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  next-safe-action@8.6.0(next@16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
       next: 16.2.10(@playwright/test@1.61.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react: 19.2.7
