@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
-    "@aws-sdk/client-sesv2": "^3.1095.0",
+    "@aws-sdk/client-sesv2": "^3.1099.0",
     "@neondatabase/serverless": "^1.1.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "better-auth": "^1.6.25",
