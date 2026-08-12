@@ -7,4 +7,3 @@ permissions:
 jobs:
   automerge:
     uses: kornsour/gh-automation/.github/workflows/dependabot-auto-merge.yml@main
-    secrets: inherit
