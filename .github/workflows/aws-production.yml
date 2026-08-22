@@ -1,0 +1,77 @@
+name: AWS production
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Authenticate only, preview the SST diff, or deploy production"
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - diff
+          - deploy
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-production
+  cancel-in-progress: false
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    environment: aws-production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::410536315347:role/crapstudy-github-deploy
+          aws-region: us-west-2
+          role-session-name: crapstudy-${{ github.run_id }}
+          allowed-account-ids: "410536315347"
+
+      - name: Verify target account
+        run: |
+          test "$(aws sts get-caller-identity --query Account --output text)" = "410536315347"
+
+      - name: Install pnpm
+        if: inputs.operation != 'verify'
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        if: inputs.operation != 'verify'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        if: inputs.operation != 'verify'
+        run: pnpm install --frozen-lockfile
+
+      - name: Preview production infrastructure
+        if: inputs.operation == 'diff'
+        run: pnpm aws:diff
+
+      # Migrations run as their own step, before `sst deploy`/`sst diff` ever
+      # touch the app build. `sst diff` and `sst deploy` both build the Next.js
+      # app to compute/apply the OpenNext plan, so anything wired into the
+      # `build` script would run on a diff too — including a preview that isn't
+      # supposed to write to the database. Keeping migrations here, gated on
+      # `operation == 'deploy'` only, is the lesson gestplate's aws-staging.yml
+      # encodes: never attach migrations to the SST build.
+      - name: Apply database migrations
+        if: inputs.operation == 'deploy'
+        run: pnpm db:migrate:deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy production
+        if: inputs.operation == 'deploy'
+        run: pnpm aws:deploy
