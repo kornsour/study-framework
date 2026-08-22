@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+#
+# git pre-push — run everything CI would, before anything reaches GitHub: a
+# branch guard, then `pnpm verify` (Biome, tsc, Vitest, build, the DB
+# migration check, lockfile integrity, Semgrep when installed — see
+# scripts/verify.sh).
+#
+# A REAL git hook, not a Claude Code hook (see scripts/hooks/pre-commit-gate.sh,
+# which IS one, wired in .claude/settings.json — it only sees commits an agent
+# makes through the Bash tool). This one runs for every push from any source:
+# the operator's own terminal, an agent, a script. Install with
+# `pnpm hooks:install` (see scripts/install-hooks.mjs for why core.hooksPath
+# must be stored relative).
+#
+# ─────────────────────────────────────────────────────────────────────────
+# 0. Refuse to push anything but main, unless explicitly overridden.
+#
+# Ported VERBATIM from career-manager (Lurking-Walrus) — unmodified, generic
+# bash with no repo-specific assumptions. See scripts/verify.sh's own header
+# for the full, verified account of what actually governs this repo's `main`:
+# a repository RULESET (id 18642485), not classic branch protection, with an
+# EMPTY bypass_actors list — meaning, unlike career-manager and unlike
+# sound-it-out's classic protection, NO ONE bypasses the PR requirement here,
+# not even the repo owner/admin. GitHub itself already refuses a direct push
+# to main from anyone, so this guard is belt-and-suspenders, not the last
+# line of defense — it just fails fast locally instead of waiting on a push
+# round-trip to be rejected server-side. `git log --merges` on main here is
+# essentially all "Merge pull request #N…" (mostly Dependabot), confirming
+# the PR-based workflow the ruleset already enforces, which means
+# ALLOW_BRANCH_PUSH=1 will be the COMMON case for an ordinary feature-branch
+# push, not the rare one career-manager's own comment describes.
+#
+# git feeds pre-push one line per ref being updated on stdin:
+#   <local ref> <local sha1> <remote ref> <remote sha1>
+# read this FIRST, before pnpm verify runs, so a feature-branch push is
+# rejected in milliseconds rather than after paying for the whole suite — and
+# so nothing downstream can accidentally read these lines off stdin itself.
+#
+# Only refs/heads/* is in scope: a tag push is a different concern entirely.
+#
+# ALLOW_BRANCH_PUSH=1 is the escape hatch, same shape as SKIP_VERIFY=1 below —
+# a real, legitimate need (an actual PR, a shared feature branch — here, the
+# NORMAL case), never silently bypassed.
+# ─────────────────────────────────────────────────────────────────────────
+set -euo pipefail
+
+REPO="$(git rev-parse --show-toplevel)"
+cd "$REPO"
+
+if [ "${ALLOW_BRANCH_PUSH:-}" != "1" ]; then
+	blocked=""
+	while read -r local_ref local_sha remote_ref remote_sha; do
+		case "$remote_ref" in
+		refs/heads/main) ;; # the one branch this guard treats as unconditional
+		refs/heads/*) blocked="${blocked}${remote_ref#refs/heads/} " ;;
+		*) ;; # refs/tags/* and anything else: out of scope for this guard
+		esac
+	done
+
+	if [ -n "$blocked" ]; then
+		printf 'pre-push: refusing to push branch(es): %s— this hook only lets main\n' "$blocked" >&2
+		echo "  through unconditionally. This repo's real workflow is feature-branch +" >&2
+		echo "  PR (and GitHub's own ruleset requires it — see scripts/verify.sh's header)," >&2
+		echo "  so this is the expected message for an ordinary push, not a bug — set:" >&2
+		echo "    ALLOW_BRANCH_PUSH=1 git push" >&2
+		exit 1
+	fi
+else
+	# Still drain stdin even when overridden — git is waiting on the other end
+	# of this pipe, and an unread ref-update line left in the buffer is exactly
+	# the kind of thing that looks fine here and hangs a later step instead.
+	while read -r _; do :; done
+fi
+
+# ─────────────────────────────────────────────────────────────────────────
+# 1. pnpm verify — the CI-equivalent checks. SKIP_VERIFY=1 is the escape
+#    hatch. A failure here BLOCKS the push; scripts/verify.sh prints exactly
+#    which check failed and the command to reproduce it alone.
+# ─────────────────────────────────────────────────────────────────────────
+if [ "${SKIP_VERIFY:-}" = "1" ]; then
+	echo "pre-push: SKIP_VERIFY=1 — skipping pnpm verify." >&2
+else
+	echo "pre-push: running pnpm verify…" >&2
+	if ! pnpm verify; then
+		echo "pre-push: pnpm verify failed — push aborted. See the summary above." >&2
+		exit 1
+	fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────
+# NO e2e / Playwright STAGE HERE, DELIBERATELY.
+#
+# career-manager runs its e2e suite from pre-push too, but ONLY when the
+# checkout has an isolated PORT and DATABASE_URL of its own (its
+# `pnpm agent:new` worktrees get exactly that). This repo has no equivalent
+# per-checkout isolation system, and its one `.env` would point at real
+# infrastructure — a real Neon database, Better Auth secrets, SES, Anthropic,
+# and Stripe keys. Running the e2e suite unconditionally here would drive
+# whichever dev server is already on :3000 against that real database — the
+# exact failure mode career-manager's own guard exists to prevent — so rather
+# than reimplement that isolation check speculatively for a repo that has
+# never had it, e2e is left out of this hook entirely. It can still be run by
+# hand with `pnpm e2e` against a deliberately isolated environment.
+#
+# NOTE, safety-specific to this repo: `pnpm build` (run inside `pnpm verify`
+# above) is deliberately the plain, non-migrating `next build` — see
+# scripts/verify.sh's header. If this hook is ever changed to call
+# `pnpm vercel-build` instead, that script DOES run `pnpm db:migrate:deploy`
+# whenever `VERCEL_ENV=production` happens to be set in the calling shell —
+# do not wire that in here without reproducing the same kind of
+# environment guard career-manager's scripts/db-deploy.sh uses.
+# ─────────────────────────────────────────────────────────────────────────
+
+echo "pre-push: verify passed." >&2
