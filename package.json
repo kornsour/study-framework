@@ -62,7 +62,7 @@
 		"sst": "^4.17.1",
 		"tailwindcss": "^4",
 		"typescript": "^7",
-		"vitest": "^4.1.10"
+		"vitest": "^4.1.11"
 	},
 	"pnpm": {
 		"overrides": {
