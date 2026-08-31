@@ -34,7 +34,7 @@
 		"aws:deploy": "sst deploy --stage production"
 	},
 	"dependencies": {
-		"@anthropic-ai/sdk": "^0.117.1",
+		"@anthropic-ai/sdk": "^0.122.0",
 		"@aws-sdk/client-sesv2": "^3.1110.0",
 		"@neondatabase/serverless": "^1.1.0",
 		"@t3-oss/env-nextjs": "^0.13.11",
