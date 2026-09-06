@@ -5,4 +5,4 @@ on:
     branches: [main]
 jobs:
   lockfile:
-    uses: kornsour/gh-automation/.github/workflows/lockfile-guard.yml@main
+    uses: kornsour/gh-automation/.github/workflows/lockfile-guard.yml@656f46da71566a02a641be3dcc26e07339b6e689 # lockfile-guard.yml pinned 2026-09-06
