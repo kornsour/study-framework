@@ -41,7 +41,7 @@
 		"better-auth": "^1.7.14",
 		"docx": "^9.15.0",
 		"drizzle-orm": "^0.45.4",
-		"next": "16.4.3",
+		"next": "16.4.5",
 		"next-safe-action": "^8.7.3",
 		"pg": "^8.23.1",
 		"react": "19.3.1",
