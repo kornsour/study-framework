@@ -38,7 +38,7 @@
 		"@aws-sdk/client-sesv2": "^3.1160.0",
 		"@neondatabase/serverless": "^1.2.0",
 		"@t3-oss/env-nextjs": "^0.13.11",
-		"better-auth": "^1.7.14",
+		"better-auth": "^1.7.18",
 		"docx": "^9.15.0",
 		"drizzle-orm": "^0.45.4",
 		"next": "16.4.5",
