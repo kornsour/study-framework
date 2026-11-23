@@ -39,7 +39,7 @@
 		"@neondatabase/serverless": "^1.2.1",
 		"@t3-oss/env-nextjs": "^0.13.11",
 		"better-auth": "^1.7.26",
-		"docx": "^9.15.3",
+		"docx": "^9.16.0",
 		"drizzle-orm": "^0.45.4",
 		"next": "16.4.6",
 		"next-safe-action": "^8.7.3",
